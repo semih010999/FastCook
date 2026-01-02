@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Etkilesilebilir
+  - Silinebilir
+  - "Pi\u015Febilir"
+  - "E\u015FyaKoyulabilir"
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: "Bah\xE7e"
+    uniqueID: 4084588149
+    locked: 0
+  - name: Yol
+    uniqueID: 1495660687
+    locked: 0
+  - name: Zemin
+    uniqueID: 3479815165
+    locked: 0
+  - name: Raflar
+    uniqueID: 1592496853
+    locked: 0
+  - name: Sprite player arka
+    uniqueID: 1886689017
+    locked: 0
+  - name: Player
+    uniqueID: 1776098893
+    locked: 0
+  - name: "Sprite player \xF6n"
+    uniqueID: 1221919153
+    locked: 0
+  - name: "\u0130\xE7 Tezgahlar"
+    uniqueID: 65348203
+    locked: 0
+  - name: "Tezgah \xFCst\xFC"
+    uniqueID: 2110286275
+    locked: 0
+  - name: "Tezgah \xDCst\xFC Item"
+    uniqueID: 2509390943
+    locked: 0
