@@ -7,32 +7,39 @@ public class PlayerController : MonoBehaviour
     public Rigidbody2D rb;
     public Animator animator;
 
-    public GameObject ÇiðKöfte1;
-    public GameObject ÇiðKöfte2;
-    public GameObject PiþmiþKöfte1;
-    public GameObject PiþmiþKöfte2;
+    public GameObject CigKofte1;
+    public GameObject CigKofte2;
+    public GameObject PismisKofte1;
+    public GameObject PismisKofte2;
 
     public GameObject TezgahEkmek;
-    public GameObject TezgahKöfte;
+    public GameObject TezgahKofte;
     public GameObject TezgahMarul;
     public GameObject TezgahPeynir;
     public GameObject TezgahDomates;
 
-    public GameObject HazýrTabakDenemesi;
+    public GameObject HazirTabakDenemesi;
 
     public float moveSpeed = 1f;
 
-    public bool EsyaTasýyorMu = false;
+    public bool EsyaTasiyorMu = false;
     public bool EtkilesimeGirilebilir = false;
-    public bool EþyaSilebilir = false;
-    public bool Piþebilir = false;
-    public bool KöfteAlýnabilirMi = false;
-    public bool EþyaKoyulabilir = false;
+    public bool EsyaSilinebilir = false;
+    public bool Pisebilir = false;
+    public bool KofteAlinabilirMi = false;
+    public bool EsyaKoyulabilir = false;
 
     public string MalzemeAdi = "";
     public string TasinanEsya = "";
 
+    [Header("TaÅŸÄ±nabilir EÅŸya Ã–zellikleri")]
+    public GameObject portableObjectChild;
+    public SpriteRenderer portableObjectSprite;
+    public Sprite[] portableObjects;
+    public Vector3[] carryPoses;
+
     Vector2 movement;
+    Vector2 lastMoveDir = Vector2.down;
 
     private void Update()
     {
@@ -43,17 +50,60 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("Vertical", movement.y);
         animator.SetFloat("Speed", movement.sqrMagnitude);
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (movement.sqrMagnitude > 0.01f)
         {
-            EtkileþimKontrol();
+            lastMoveDir = movement;
         }
 
-        YemekHazýrKontrol();
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            EtkilesimKontrol();
+        }
+
+        YemekHazirKontrol();
+        UpdatePortableObjectPosition();
     }
 
     private void FixedUpdate()
     {
         rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
+    }
+
+    void UpdatePortableObjectPosition()
+    {
+        if (!portableObjectChild.activeSelf) return;
+
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
+
+        if (h == 0 && v == 0)
+        {
+            portableObjectChild.transform.localPosition = carryPoses[1]; // Down
+            portableObjectSprite.sortingOrder = 2;
+            return;
+        }
+
+        if (v > 0)
+        {
+            portableObjectChild.transform.localPosition = carryPoses[0];
+            portableObjectSprite.sortingOrder = -1;
+        }
+
+        else if (v < 0)
+        {
+            portableObjectChild.transform.localPosition = carryPoses[1];
+            portableObjectSprite.sortingOrder = 2;
+        }
+
+        else if (h != 0)
+        {
+            portableObjectSprite.sortingOrder = 2;
+            portableObjectChild.transform.localPosition = new Vector3(
+                Mathf.Sign(h) * Mathf.Abs(carryPoses[2].x),
+                carryPoses[2].y,
+                0
+            );
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -62,25 +112,21 @@ public class PlayerController : MonoBehaviour
         {
             EtkilesimeGirilebilir = true;
             MalzemeAdi = other.gameObject.name;
-            //Debug.Log("Etkileþime Girilebilir: " + MalzemeAdi);
         }
 
         if (other.CompareTag("Silinebilir"))
         {
-            EþyaSilebilir = true;
-            //Debug.Log("Eþya Silinebilir Alanýnda.");
+            EsyaSilinebilir = true;
         }
 
-        if (other.CompareTag("Piþebilir"))
+        if (other.CompareTag("PiÅŸebilir"))
         {
-            Piþebilir = true;
-            //Debug.Log("Izgaranýn önündesin");
+            Pisebilir = true;
         }
 
-        if (other.CompareTag("EþyaKoyulabilir"))
+        if (other.CompareTag("EÅŸyaKoyulabilir"))
         {
-            EþyaKoyulabilir = true;
-            //Debug.Log("Tepsinin Önündesin");
+            EsyaKoyulabilir = true;
         }
     }
 
@@ -90,176 +136,137 @@ public class PlayerController : MonoBehaviour
         {
             EtkilesimeGirilebilir = false;
             MalzemeAdi = "";
-            //Debug.Log("Etkileþim Alanýndan Çýkýldý.");
         }
 
         if (other.CompareTag("Silinebilir"))
         {
-            EþyaSilebilir = false;
-            //Debug.Log("Eþya Silinebilir Alanýndan Çýkýldý.");
+            EsyaSilinebilir = false;
         }
 
-        if(other.CompareTag("Piþebilir"))
+        if (other.CompareTag("PiÅŸebilir"))
         {
-            Piþebilir = false;
-            //Debug.Log("Izgranýn önünden çýktýn");
+            Pisebilir = false;
         }
 
-        if(other.CompareTag("EþyaKoyulabilir"))
+        if (other.CompareTag("EÅŸyaKoyulabilir"))
         {
-            EþyaKoyulabilir = false;
-            //Debug.Log("Tepsinin Önündesin");
+            EsyaKoyulabilir = false;
         }
     }
 
-    private void EtkileþimKontrol()
+    private void EtkilesimKontrol()
     {
-        if (EsyaTasýyorMu)
+        if (EsyaTasiyorMu)
         {
-            if (EþyaSilebilir)
+            if (EsyaSilinebilir)
             {
-                EþyayýSil();
-            }
-            else if (EtkilesimeGirilebilir)
-            {
-                //Debug.Log("Taþýnan eþyayý býrak/kullan: " + TasinanEsya);
+                EsyayiSil();
             }
         }
         else
         {
             if (EtkilesimeGirilebilir)
             {
-                EþyayýAl(MalzemeAdi);
+                EsyayiAl(MalzemeAdi);
+                portableObjectChild.SetActive(true);
+                if (TasinanEsya == "Ekmek") portableObjectSprite.sprite = portableObjects[0];
+                else if (TasinanEsya == "KÃ¶fte") portableObjectSprite.sprite = portableObjects[1];
+                else if (TasinanEsya == "Marul") portableObjectSprite.sprite = portableObjects[2];
+                else if (TasinanEsya == "Peynir") portableObjectSprite.sprite = portableObjects[3];
+                else if (TasinanEsya == "Domates") portableObjectSprite.sprite = portableObjects[4];
             }
         }
 
-        if(EsyaTasýyorMu & TasinanEsya == "Köfte")
+        if (EsyaTasiyorMu && TasinanEsya == "KÃ¶fte" && Pisebilir)
         {
-            if(Piþebilir)
-            {
-                IzgaraKontrol();
-                Debug.Log("Piþirebilirsin");
-            }
-        }
-        else
-        {
-            if(Piþebilir)
-            {
-                Debug.Log("Elinde Köfte Yok");
-            }
+            IzgaraKontrol();
         }
 
-        if(EsyaTasýyorMu == false & Piþebilir == true & PiþmiþKöfte1.activeInHierarchy || PiþmiþKöfte2.activeInHierarchy)
+        if (!EsyaTasiyorMu && Pisebilir &&
+            (PismisKofte1.activeInHierarchy || PismisKofte2.activeInHierarchy))
         {
-            if(PiþmiþKöfte1.activeInHierarchy)
-            {
-                PiþmiþKöfte1.SetActive(false);
-                TasinanEsya = "PiþmiþKöfte";
-                EsyaTasýyorMu = true;
-                Debug.Log("Piþmiþ Köfte Alýndý");
-            }
-            else if(PiþmiþKöfte2.activeInHierarchy)
-            {
-                PiþmiþKöfte2.SetActive(false);
-                TasinanEsya = "PiþmiþKöfte";
-                EsyaTasýyorMu = true;
-                Debug.Log("Piþmiþ Köfte Alýndý");
-            }
+            if (PismisKofte1.activeInHierarchy)
+                PismisKofte1.SetActive(false);
+            else
+                PismisKofte2.SetActive(false);
+
+            TasinanEsya = "PiÅŸmiÅŸKÃ¶fte";
+            EsyaTasiyorMu = true;
+
+            portableObjectChild.SetActive(true);
+            if (TasinanEsya == "PiÅŸmiÅŸKÃ¶fte") portableObjectSprite.sprite = portableObjects[5];
         }
 
-        if(EsyaTasýyorMu == true & EþyaKoyulabilir == true)
+        if (EsyaTasiyorMu && EsyaKoyulabilir)
         {
-            if(TasinanEsya == "Ekmek")
-            {
-                TezgahEkmek.SetActive(true);
-                TasinanEsya = "";
-                EsyaTasýyorMu = false;
-            }
-            else if(TasinanEsya == "PiþmiþKöfte")
-            {
-                TezgahKöfte.SetActive(true);
-                TasinanEsya = "";
-                EsyaTasýyorMu = false;
-            }
-            else if(TasinanEsya == "Marul")
-            {
-                TezgahMarul.SetActive(true);
-                TasinanEsya = "";
-                EsyaTasýyorMu = false;
-            }
-            else if(TasinanEsya == "Peynir")
-            {
-                TezgahPeynir.SetActive(true);
-                TasinanEsya = "";
-                EsyaTasýyorMu = false;
-            }
+            if (TasinanEsya == "Ekmek") TezgahEkmek.SetActive(true);
+            else if (TasinanEsya == "PiÅŸmiÅŸKÃ¶fte") TezgahKofte.SetActive(true);
+            else if (TasinanEsya == "Marul") TezgahMarul.SetActive(true);
+            else if (TasinanEsya == "Peynir") TezgahPeynir.SetActive(true);
+            else if (TasinanEsya == "Domates") TezgahDomates.SetActive(true);
+
+            TasinanEsya = "";
+            EsyaTasiyorMu = false;
+            portableObjectChild.SetActive(false);
         }
     }
 
-    private void EþyayýAl(string malzeme)
+    private void EsyayiAl(string malzeme)
     {
-        EsyaTasýyorMu = true;
+        EsyaTasiyorMu = true;
         TasinanEsya = malzeme;
-
-        Debug.Log(TasinanEsya + " alýndý.");
     }
 
-    private void EþyayýSil()
+    private void EsyayiSil()
     {
-        Debug.Log(TasinanEsya + " çöpe atýldý.");
-
-        EsyaTasýyorMu = false;
+        EsyaTasiyorMu = false;
         TasinanEsya = "";
+        portableObjectChild.SetActive(false);
     }
 
     private void IzgaraKontrol()
     {
-        if(ÇiðKöfte1.activeInHierarchy || PiþmiþKöfte1.activeInHierarchy)
-        {
-            StartCoroutine(KöftePiþirme02());
-            EsyaTasýyorMu = false ;
-            TasinanEsya = "";
-        }
+        portableObjectChild.SetActive(false);
+
+        if (CigKofte1.activeInHierarchy || PismisKofte1.activeInHierarchy)
+            StartCoroutine(KoftePisir02());
         else
-        {
-            StartCoroutine(KöftePiþirme01());
-            EsyaTasýyorMu = false ;
-            TasinanEsya = "";
-        }
+            StartCoroutine(KoftePisir01());
+
+        EsyaTasiyorMu = false;
+        TasinanEsya = "";
     }
 
-    private void YemekHazýrKontrol()
+    private void YemekHazirKontrol()
     {
-        //Hamburger
-        if(TezgahEkmek.activeInHierarchy & TezgahKöfte.activeInHierarchy & TezgahMarul.activeInHierarchy & TezgahPeynir.activeInHierarchy)
+        if (TezgahEkmek.activeInHierarchy &&
+            TezgahKofte.activeInHierarchy &&
+            TezgahMarul.activeInHierarchy &&
+            TezgahPeynir.activeInHierarchy)
         {
-            HazýrTabakDenemesi.SetActive(true);
+            HazirTabakDenemesi.SetActive(true);
+
             TezgahEkmek.SetActive(false);
-            TezgahKöfte.SetActive(false);
+            TezgahKofte.SetActive(false);
             TezgahMarul.SetActive(false);
             TezgahPeynir.SetActive(false);
+            TezgahDomates.SetActive(false);
         }
     }
 
-    IEnumerator KöftePiþirme01()
+    IEnumerator KoftePisir01()
     {
-        ÇiðKöfte1.SetActive(true);
-
+        CigKofte1.SetActive(true);
         yield return new WaitForSeconds(7);
-
-        ÇiðKöfte1.SetActive(false);
-        PiþmiþKöfte1.SetActive(true);
-        KöfteAlýnabilirMi = true;
+        CigKofte1.SetActive(false);
+        PismisKofte1.SetActive(true);
     }
 
-    IEnumerator KöftePiþirme02()
+    IEnumerator KoftePisir02()
     {
-        ÇiðKöfte2.SetActive(true);
-
+        CigKofte2.SetActive(true);
         yield return new WaitForSeconds(7);
-
-        ÇiðKöfte2.SetActive(false);
-        PiþmiþKöfte2.SetActive(true);
-        KöfteAlýnabilirMi = true;
+        CigKofte2.SetActive(false);
+        PismisKofte2.SetActive(true);
     }
 }
