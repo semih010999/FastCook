@@ -8,6 +8,7 @@ TagManager:
   - Silinebilir
   - "Pi\u015Febilir"
   - "E\u015FyaKoyulabilir"
+  - CashRegister
   layers:
   - Default
   - TransparentFX

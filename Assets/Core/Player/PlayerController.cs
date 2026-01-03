@@ -11,12 +11,19 @@ public class PlayerController : MonoBehaviour
     public GameObject CigKofte2;
     public GameObject PismisKofte1;
     public GameObject PismisKofte2;
+    public bool isGrill1Empty = true;
+    public bool isGrill2Empty = true;
 
     public GameObject TezgahEkmek;
+    bool isBreadEmptyStand = true;
     public GameObject TezgahKofte;
+    bool isMeatballEmptyStand = true;
     public GameObject TezgahMarul;
+    bool isLettuceEmptyStand = true;
     public GameObject TezgahPeynir;
+    bool isCheeseEmptyStand = true;
     public GameObject TezgahDomates;
+    bool isTomatoEmptyStand = true;
 
     public GameObject HazirTabakDenemesi;
 
@@ -37,6 +44,9 @@ public class PlayerController : MonoBehaviour
     public SpriteRenderer portableObjectSprite;
     public Sprite[] portableObjects;
     public Vector3[] carryPoses;
+
+    [Header("GameObjects")]
+    public SpriteRenderer cashRegisterSpriteRenderer;
 
     Vector2 movement;
     Vector2 lastMoveDir = Vector2.down;
@@ -128,6 +138,11 @@ public class PlayerController : MonoBehaviour
         {
             EsyaKoyulabilir = true;
         }
+
+        if (other.CompareTag("CashRegister"))
+        {
+            cashRegisterSpriteRenderer.sortingLayerName = "Sprite player ön";
+        }
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -152,6 +167,11 @@ public class PlayerController : MonoBehaviour
         {
             EsyaKoyulabilir = false;
         }
+
+        if (other.CompareTag("CashRegister"))
+        {
+            cashRegisterSpriteRenderer.sortingLayerName = "Sprite player arka";
+        }
     }
 
     private void EtkilesimKontrol()
@@ -168,6 +188,7 @@ public class PlayerController : MonoBehaviour
             if (EtkilesimeGirilebilir)
             {
                 EsyayiAl(MalzemeAdi);
+                animator.SetBool("isHolding", true);
                 portableObjectChild.SetActive(true);
                 if (TasinanEsya == "Ekmek") portableObjectSprite.sprite = portableObjects[0];
                 else if (TasinanEsya == "Köfte") portableObjectSprite.sprite = portableObjects[1];
@@ -179,35 +200,70 @@ public class PlayerController : MonoBehaviour
 
         if (EsyaTasiyorMu && TasinanEsya == "Köfte" && Pisebilir)
         {
+            if(!isGrill1Empty && !isGrill2Empty) return;
+
             IzgaraKontrol();
         }
 
-        if (!EsyaTasiyorMu && Pisebilir &&
-            (PismisKofte1.activeInHierarchy || PismisKofte2.activeInHierarchy))
+        if (!EsyaTasiyorMu && Pisebilir && (PismisKofte1.activeInHierarchy || PismisKofte2.activeInHierarchy))
         {
             if (PismisKofte1.activeInHierarchy)
+            {
                 PismisKofte1.SetActive(false);
+                isGrill1Empty = true;
+            }
             else
+            {
                 PismisKofte2.SetActive(false);
+                isGrill2Empty = true;
+            }
 
             TasinanEsya = "PişmişKöfte";
             EsyaTasiyorMu = true;
 
             portableObjectChild.SetActive(true);
+            animator.SetBool("isHolding", true);
             if (TasinanEsya == "PişmişKöfte") portableObjectSprite.sprite = portableObjects[5];
         }
 
         if (EsyaTasiyorMu && EsyaKoyulabilir)
         {
-            if (TasinanEsya == "Ekmek") TezgahEkmek.SetActive(true);
-            else if (TasinanEsya == "PişmişKöfte") TezgahKofte.SetActive(true);
-            else if (TasinanEsya == "Marul") TezgahMarul.SetActive(true);
-            else if (TasinanEsya == "Peynir") TezgahPeynir.SetActive(true);
-            else if (TasinanEsya == "Domates") TezgahDomates.SetActive(true);
+            if (TasinanEsya == "Köfte") return;
+            else if (TasinanEsya == "Ekmek")
+            {
+                if (!isBreadEmptyStand) return;
+
+                TezgahEkmek.SetActive(true);
+            } 
+            else if (TasinanEsya == "PişmişKöfte")
+            {
+                if (!isMeatballEmptyStand) return;
+                isMeatballEmptyStand = false;
+                TezgahKofte.SetActive(true);
+            } 
+            else if (TasinanEsya == "Marul")
+            {
+                if (!isLettuceEmptyStand) return;
+                isLettuceEmptyStand = false;
+                TezgahMarul.SetActive(true);
+            } 
+            else if (TasinanEsya == "Peynir")
+            {
+                if (!isCheeseEmptyStand) return;
+                isCheeseEmptyStand = false;
+                TezgahPeynir.SetActive(true);
+            } 
+            else if (TasinanEsya == "Domates")
+            {
+                if (!isTomatoEmptyStand) return;
+                isTomatoEmptyStand = false;
+                TezgahDomates.SetActive(true);
+            } 
 
             TasinanEsya = "";
             EsyaTasiyorMu = false;
             portableObjectChild.SetActive(false);
+            animator.SetBool("isHolding", false);
         }
     }
 
@@ -222,11 +278,13 @@ public class PlayerController : MonoBehaviour
         EsyaTasiyorMu = false;
         TasinanEsya = "";
         portableObjectChild.SetActive(false);
+        animator.SetBool("isHolding", false);
     }
 
     private void IzgaraKontrol()
     {
         portableObjectChild.SetActive(false);
+        animator.SetBool("isHolding", false);
 
         if (CigKofte1.activeInHierarchy || PismisKofte1.activeInHierarchy)
             StartCoroutine(KoftePisir02());
@@ -251,12 +309,19 @@ public class PlayerController : MonoBehaviour
             TezgahMarul.SetActive(false);
             TezgahPeynir.SetActive(false);
             TezgahDomates.SetActive(false);
+
+            isBreadEmptyStand = true;
+            isMeatballEmptyStand = true;
+            isLettuceEmptyStand = true;
+            isCheeseEmptyStand = true;
+            isTomatoEmptyStand = true;
         }
     }
 
     IEnumerator KoftePisir01()
     {
         CigKofte1.SetActive(true);
+        isGrill1Empty = false;
         yield return new WaitForSeconds(7);
         CigKofte1.SetActive(false);
         PismisKofte1.SetActive(true);
@@ -265,6 +330,7 @@ public class PlayerController : MonoBehaviour
     IEnumerator KoftePisir02()
     {
         CigKofte2.SetActive(true);
+        isGrill2Empty = false;
         yield return new WaitForSeconds(7);
         CigKofte2.SetActive(false);
         PismisKofte2.SetActive(true);
